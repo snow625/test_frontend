@@ -23,6 +23,7 @@ export default {
       links: [
         { title: "Shop", url: "/" },
         { title: "Shopping Cart", url: "/cart" },
+        { title: "History of Orders", url: "/orders" },
       ],
     };
   },

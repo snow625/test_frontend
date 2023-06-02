@@ -1,18 +1,23 @@
 <template lang="">
   <EmpyCart v-if="!LSItems.length" />
-  <div v-else class="wrapper">
+  <div v-else class="wrapper" v-loading="loading">
     <Form v-model="formData" />
     <CartList :onRemove="removeItem" :items="orderItems" />
   </div>
-  <div class="operations_wrapper">
-    <p>Total price <span>{{totalPrice}}$</span></p>
-    <el-button type="primary" @click="submitForm">Submit</el-button>
+  <div v-if="totalPrice" class="operations_wrapper">
+    <p>
+      Total price <span>{{ totalPrice }}$</span>
+    </p>
+    <el-button :disabled="loading" type="primary" @click="submitForm"
+      >Submit</el-button
+    >
   </div>
 </template>
 <script>
 import CartList from "./CartList/CartList.vue";
 import Form from "./Form/Form.vue";
 import EmpyCart from "./EmpyCart/EmpyCart.vue";
+import { ElMessage } from "element-plus";
 import { createOrder } from "../../services";
 
 export default {
@@ -27,11 +32,12 @@ export default {
       orderItems: [],
       totalPrice: 0,
       LSItems: [],
+      loading: false,
       formData: {
         name: "",
         email: "",
         phone: "",
-        ardress: "",
+        adress: "",
       },
     };
   },
@@ -59,8 +65,43 @@ export default {
       this.LSItems = dataForLS;
       localStorage.setItem("items", JSON.stringify(dataForLS));
     },
-    submitForm() {
-      // Object.keys(this.formData).()
+    async submitForm() {
+      if (this.checkForm(this.formData)) {
+        this.loading = true;
+        const { formData, totalPrice, orderItems } = this;
+
+        const value = {
+          ...formData,
+          totalPrice,
+          orderItems,
+        };
+        const result = await createOrder(value);
+        if (result.message) {
+          ElMessage({
+            message: result.message,
+            type: "success",
+          });
+          this.resetOrder();
+        }
+
+        this.loading = false;
+      }
+    },
+    checkForm(formData) {
+      return Object.keys(formData).every((key) => {
+        const value = formData[key];
+        if (!value) {
+          ElMessage({
+            message: `Warning, ${key} is required.`,
+            type: "warning",
+          });
+        }
+        return formData[key] !== "";
+      });
+    },
+    resetOrder() {
+      localStorage.removeItem("items");
+      this.$router.push("/");
     },
   },
 
@@ -85,20 +126,18 @@ export default {
   padding: 20px 0;
   height: 800px;
 }
-.operations_wrapper{
+.operations_wrapper {
   display: flex;
-  
-    align-items: center;
-    justify-content: space-around;
-    flex-direction: row-reverse;
-}
-.operations_wrapper p{
-  font-size: 24px;
 
+  align-items: center;
+  justify-content: space-around;
+  flex-direction: row-reverse;
 }
-.operations_wrapper > p> span {
+.operations_wrapper p {
+  font-size: 24px;
+}
+.operations_wrapper > p > span {
   font-size: 26px;
   font-weight: 600;
-  
 }
 </style>

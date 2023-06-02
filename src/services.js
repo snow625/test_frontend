@@ -27,7 +27,7 @@ const instance = axios.create({
   };
   export const createOrder = async (value) => {
     try {
-      const { data } = await instance.post("/orders", {value});
+      const { data } = await instance.post("/orders", {...value});
       return data;
     } catch (error) {
       console.log(error);

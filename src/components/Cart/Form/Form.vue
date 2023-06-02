@@ -28,7 +28,7 @@
         
         
       >
-        <el-input v-model="modelValue.ardress" />
+        <el-input v-model="modelValue.adress" />
       </el-form-item>
     </el-form>
   </div>
